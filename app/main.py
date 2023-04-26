@@ -1,14 +1,19 @@
 #System imports
 
+
 #Libs imports
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, status, Depends
 
 #Local imports
-from routers import cars, users
-from internal import auth
+from routers import user
 
 app = FastAPI()
 
-app.include_router(auth.router, tags=["Authentification"])
-app.include_router(cars.router, tags=["Car"])
-app.include_router(users.router, tags=["User"])
+@app.get("/")
+async def say_hello():
+    """Projet Fullstack back
+    """
+    return "Hello"
+
+
+app.include_router(user.router, tags=["users"])
