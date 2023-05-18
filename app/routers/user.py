@@ -1,35 +1,69 @@
-#System imports
+# System imports
+from typing import Annotated
+import datetime
+# Libs imports
+from fastapi import APIRouter, status, HTTPException, Depends
+from sqlalchemy.orm import Session
 
-
-#Libs imports
-from fastapi import APIRouter, Response, status
-from pydantic import BaseModel
-
-#Local imports
+# Local imports
+from internal import models
+from internal import schemas
+from dependencie import get_db
 
 router = APIRouter()
 
-users = [
-    {"id": 1, "name": "Léo"},
-    {"id": 2, "name": "Yanis"},
-    {"id": 3, "name": "Louis"},
-    {"id": 4, "name": "Jacques"},
-]
-
-class User(BaseModel):
-    id: int
-    name: str
-
-@router.get("/users", responses={status.HTTP_204_NO_CONTENT: {}})
-async def get_all_users() -> list[User]:
-    if len(users)==0:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+# Récupérer tous les utilisateurs
+@router.get("/users/", response_model=list[schemas.User])
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
     return users
+# Récupérer un utilisateur par son ID
+@router.get("/user/{user_id}", response_model=schemas.User)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    return db_user
 
-@router.put("/users/{user_id}")
-async def update_user(user_id: int, user: User) -> User:
-    for i in range(0, len(users)):
-        if users[i]["id"] == user_id:
-            users[i] = user.__dict__ 
-    return Response(status_code = status.HTTP_200_OK)
+# Créer un utilisateur
+@router.post("/user/", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = models.User(
+        nom=user.nom,
+        prenom=user.prenom,
+        email=user.email,
+        mdp=user.mdp,
+        id_entreprise=user.id_entreprise,
+        role=user.role
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
+# Mettre à jour un utilisateur
+@router.put("/user/{user_id}", response_model=schemas.User)
+def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    db_user.nom = user.nom
+    db_user.prenom = user.prenom
+    db_user.email = user.email
+    db_user.mdp = user.mdp
+    db_user.id_entreprise = user.id_entreprise
+    db_user.role = user.role
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+# Supprimer un utilisateur
+@router.delete("/user/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    db.delete(db_user)
+    db.commit()
+    return {"message": "Utilisateur supprimé"}

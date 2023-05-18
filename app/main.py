@@ -1,19 +1,18 @@
-#System imports
+# Libs imports
+from fastapi import FastAPI, HTTPException, Depends
 
-
-#Libs imports
-from fastapi import FastAPI, status, Depends
-
-#Local imports
-from routers import user
+# Local imports
+from internal import models
+from internal.database import engine
+from routers import activite, entreprise, planning, user, inscription
 
 app = FastAPI()
 
-@app.get("/")
-async def say_hello():
-    """Projet Fullstack back
-    """
-    return "Hello"
+# Création des tables dans la base de données
+models.Base.metadata.create_all(bind=engine)
 
-
-app.include_router(user.router, tags=["users"])
+app.include_router(user.router, tags=["User"])
+app.include_router(entreprise.router, tags=["Entreprise"])
+app.include_router(planning.router, tags=["Planning"])
+app.include_router(activite.router, tags=["Activités"])
+app.include_router(inscription.router, tags=["Inscription Activité"])
