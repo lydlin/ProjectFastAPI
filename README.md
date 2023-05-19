@@ -36,9 +36,9 @@ La base de données se trouve dans le dossier /app et son nom par défaut est fa
 
 ### Modèle Entité Association (MEA)
 
-![](public/assets/bdd.png)
+<img src="public/assets/bdd.png" width="800" height="600">
 
 ### Concepteur de la base de données
 
-![](public/assets/concept.png)
+<img src="public/assets/concept.png" width="800" height="600">
 
