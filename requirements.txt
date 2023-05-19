@@ -1,6 +1,5 @@
 fastapi == 0.95.0
 python-multipart == 0.0.6
 python-jose == 3.3.0
-mysql-connector-python == 8.0.33
 sqlalchemy == 1.4.23
 cryptography == 40.0.2
